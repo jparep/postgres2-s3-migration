@@ -1,0 +1,21 @@
+# Ignore PostgreSQL dump files
+*.sql
+*.dump
+
+# Ignore AWS S3 configuration files
+*.aws
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore log files
+*.log
+
+# Ignore Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Ignore environment variable files
+.env
