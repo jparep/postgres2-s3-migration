@@ -19,6 +19,7 @@ load_dotenv()
 # Database Connection
 conn = psycopg2.connect(
     host=os.getenv("ONPREM_DB_HOST"),
+    port=os.getenv("ONPREM_DB_PORT"),
     user=os.getenv("ONPREM_DB_USER"),
     password=os.getenv("ONPREM_DB_PASSWORD"),
     dbname=os.getenv("ONPREM_DB_NAME")
@@ -48,11 +49,11 @@ tables = ["patients", "medical_records", "billing"]
 def upload_to_s3(file_path, bucket, s3_key):
     try:
         s3.upload_file(file_path, bucket, s3_key)
-        logger.info(f"✅ Uploaded {file_path} to s3://{bucket}/{s3_key}")
+        logger.info(f"Uploaded {file_path} to s3://{bucket}/{s3_key}")
     except botocore.exceptions.BotoCoreError as e:
-        logger.error(f"❌ Upload failed: {e}")
+        logger.error(f"Upload failed: {e}")
     except Exception as e:
-        logger.error(f"❌ Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
 
 # Process Each Table
 for table in tables:
@@ -78,4 +79,4 @@ for table in tables:
 # Cleanup
 cursor.close()
 conn.close()
-logger.info("✅ Migration completed successfully!")
+logger.info("Migration completed successfully!")
