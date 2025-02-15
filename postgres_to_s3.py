@@ -61,22 +61,26 @@ for table in tables:
     logger.info(f"Extracting {table}...")
 
     # Read table in chunks (Prevents memory overload)
-    query = f"SELECT * FROM {table};"
-
+    query = f"SELECT * FROM vital_health_db.{table};"  # Explicitly reference the schema
     chunksize = 50000  # Fetch 50,000 rows at a time
-    data_chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
 
-    for idx, chunk in enumerate(data_chunks):
-        file_name = f"{table}_part{idx}.parquet"
-        file_path = f"/tmp/{file_name}"  # Store temporarily before upload
+    try:
+        data_chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
 
-        # Convert DataFrame to Parquet with optimized compression
-        table_schema = pa.Table.from_pandas(chunk)
-        pq.write_table(table_schema, file_path, compression="ZSTD")  # ZSTD saves space
+        for idx, chunk in enumerate(data_chunks):
+            file_name = f"{table}_part{idx}.parquet"
+            file_path = f"/tmp/{file_name}"  # Store temporarily before upload
 
-        # Upload to S3
-        s3_key = f"{S3_PREFIX}{table}/{file_name}"
-        upload_to_s3(file_path, S3_BUCKET, s3_key)
+            # Convert DataFrame to Parquet with optimized compression
+            table_schema = pa.Table.from_pandas(chunk)
+            pq.write_table(table_schema, file_path, compression="ZSTD")  # ZSTD saves space
+
+            # Upload to S3
+            s3_key = f"{S3_PREFIX}{table}/{file_name}"
+            upload_to_s3(file_path, S3_BUCKET, s3_key)
+
+    except Exception as e:
+        logger.error(f"Failed to extract data from {table}: {e}")
 
 # Cleanup
 cursor.close()
