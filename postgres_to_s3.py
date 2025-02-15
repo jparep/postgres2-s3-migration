@@ -22,7 +22,8 @@ conn = psycopg2.connect(
     port=os.getenv("ONPREM_DB_PORT"),
     user=os.getenv("ONPREM_DB_USER"),
     password=os.getenv("ONPREM_DB_PASSWORD"),
-    dbname=os.getenv("ONPREM_DB_NAME")
+    dbname=os.getenv("ONPREM_DB_NAME"),
+    options="-c search_path=vital_health_db"
 )
 cursor = conn.cursor()
 
@@ -61,6 +62,7 @@ for table in tables:
 
     # Read table in chunks (Prevents memory overload)
     query = f"SELECT * FROM {table};"
+
     chunksize = 50000  # Fetch 50,000 rows at a time
     data_chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
 
