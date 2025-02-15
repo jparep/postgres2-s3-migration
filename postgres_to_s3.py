@@ -46,6 +46,21 @@ S3_PREFIX = f"health-data/{current_date}/"
 # Define tables to migrate
 tables = ["patients", "medical_records", "billing"]
 
+######################################################################
+# DELETE EXISTIGN FILES IN S3 BEFORE UPLOADING NEW FILES
+######################################################################
+def clean_s3_directory(bucket, prefix):
+    """Deletes all objects in an S3 directory before re-uploading"""
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+    if "Contents" in response:
+        for obj in response["Contents"]:
+            s3.delete_object(Bucket=bucket, Key=obj["Key"])
+        print(f"Deleted all files in {bucket}/{prefix}")
+
+# Run this before uploading new files
+clean_s3_directory(S3_BUCKET, S3_PREFIX)
+######################################################################
+
 # Function to Upload Files to S3 with Error Handling
 def upload_to_s3(file_path, bucket, s3_key):
     try:
@@ -73,7 +88,9 @@ for table in tables:
 
             # Convert DataFrame to Parquet with optimized compression
             table_schema = pa.Table.from_pandas(chunk)
-            pq.write_table(table_schema, file_path, compression="ZSTD")  # ZSTD saves space
+            #pq.write_table(table_schema, file_path, compression="ZSTD")  # ZSTD saves space
+            pq.write_table(table_schema, file_path, compression="SNAPPY")  # Change ZSTD to SNAPPY
+
 
             # Upload to S3
             s3_key = f"{S3_PREFIX}{table}/{file_name}"
