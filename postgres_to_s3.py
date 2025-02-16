@@ -77,7 +77,7 @@ for table in tables:
 
     # Read table in chunks (Prevents memory overload)
     query = f"SELECT * FROM vital_health_db.{table};"  # Explicitly reference the schema
-    chunksize = 50000  # Fetch 50,000 rows at a time
+    chunksize = 50  # Fetch 50000 rows at a time
 
     try:
         data_chunks = pd.read_sql_query(query, conn, chunksize=chunksize)
